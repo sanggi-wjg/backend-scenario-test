@@ -38,32 +38,33 @@ CREATE TABLE `product`
 
 CREATE TABLE `coupon`
 (
-    id                  BIGINT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name                VARCHAR(64)    NOT NULL COMMENT '이름',
+    id                               BIGINT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name                             VARCHAR(64)    NOT NULL COMMENT '이름',
 
     -- 할인 
-    discount_type       VARCHAR(64)    NOT NULL COMMENT '할인 유형 (AMOUNT, PERCENTAGE)',
-    discount_value      DECIMAL(15, 0) NOT NULL COMMENT 'AMOUNT: 정액 할인 / PERCENTAGE: 정률 할인 (1~100)',
-    min_order_amount    DECIMAL(15, 0) NOT NULL DEFAULT 0 COMMENT '최소 주문 금액',
-    max_discount_amount DECIMAL(15, 0) NULL COMMENT '정률 할인시 최대 할인 금액 (NULL, 제한 없음)',
+    discount_type                    VARCHAR(64)    NOT NULL COMMENT '할인 유형 (AMOUNT, PERCENTAGE)',
+    discount_value                   DECIMAL(15, 0) NOT NULL COMMENT 'AMOUNT: 정액 할인 / PERCENTAGE: 정률 할인 (1~100)',
+    min_order_amount                 DECIMAL(15, 0) NOT NULL DEFAULT 0 COMMENT '최소 주문 금액',
+    max_discount_amount              DECIMAL(15, 0) NULL COMMENT '정률 할인시 최대 할인 금액 (NULL: 제한 없음)',
+    max_discount_percentage_of_order DECIMAL(2, 0)  NULL COMMENT '주문금액 대비 최대 할인 비율 (NULL: 제한 없음)',
 
     -- 사용/발급 
-    scope               VARCHAR(64)    NOT NULL COMMENT '쿠폰 사용 가능 범위 (ALL, RESTRICTED)',
-    using_days          INT            NULL COMMENT '사용가능일수 (use_start_at, use_end_at 조합 사용 불가능)',
-    use_start_at        DATETIME(6)    NULL COMMENT '사용가능일시 (use_end_at 동시 필요)',
-    use_end_at          DATETIME(6)    NULL COMMENT '사용종료일시 (use_start_at 동시 필요)',
-    issue_start_at      DATETIME(6)    NULL COMMENT '발급가능일시',
-    issue_end_at        DATETIME(6)    NULL COMMENT '발급종료일시',
+    scope                            VARCHAR(64)    NOT NULL COMMENT '쿠폰 사용 가능 범위 (ALL, RESTRICTED)',
+    using_days                       INT            NULL COMMENT '사용가능일수 (use_start_at, use_end_at 조합 사용 불가능)',
+    use_start_at                     DATETIME(6)    NULL COMMENT '사용가능일시 (use_end_at 동시 필요)',
+    use_end_at                       DATETIME(6)    NULL COMMENT '사용종료일시 (use_start_at 동시 필요)',
+    issue_start_at                   DATETIME(6)    NULL COMMENT '발급가능일시',
+    issue_end_at                     DATETIME(6)    NULL COMMENT '발급종료일시',
 
     -- 화면에서 친구 쿠폰, 단골 회원
-    issue_type          VARCHAR(64)    NOT NULL COMMENT '발급 유형 (AUTO, ADMIN, DOWNLOAD, ...)',
-    issue_trigger_type  VARCHAR(64)    NOT NULL DEFAULT 'NONE' COMMENT '발급 트리거 유형 (FRIEND_INVITED, REGULAR_LOYAL_CUSTOMER, ...)',
+    issue_type                       VARCHAR(64)    NOT NULL COMMENT '발급 유형 (AUTO, ADMIN, DOWNLOAD, ...)',
+    issue_trigger_type               VARCHAR(64)    NOT NULL DEFAULT 'NONE' COMMENT '발급 트리거 유형 (FRIEND_INVITED, REGULAR_LOYAL_CUSTOMER, ...)',
     -- 화면에서 첫 거래 쿠폰
-    first_order_only    BOOLEAN        NOT NULL DEFAULT 0 COMMENT '첫주문 전용',
+    first_order_only                 BOOLEAN        NOT NULL DEFAULT 0 COMMENT '첫주문 전용',
 
     -- 감사
-    created_at          DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성일시',
-    updated_at          DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
+    created_at                       DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성일시',
+    updated_at                       DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
 
     -- 할인유형별 범위 체크
     CONSTRAINT `chk_coupon_001` CHECK (
@@ -79,7 +80,8 @@ CREATE TABLE `coupon`
     CONSTRAINT `chk_coupon_007` CHECK (
         (using_days IS NOT NULL AND use_start_at IS NULL AND use_end_at IS NULL)
             OR (using_days IS NULL AND use_start_at IS NOT NULL AND use_end_at IS NOT NULL)
-        )
+        ),
+    CONSTRAINT `chk_coupon_008` CHECK (max_discount_percentage_of_order > 0)
 
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
